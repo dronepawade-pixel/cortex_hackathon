@@ -36,38 +36,38 @@ export default function EarlyCareSection() {
   const reducedMotion = useReducedMotion();
 
   return (
-    <section id="early-care" aria-labelledby="early-care-title" className="rounded-[14px] bg-mint p-6 sm:p-10 lg:p-[42px]">
-      <div className="grid items-end gap-7 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
+    <section id="early-care" aria-labelledby="early-care-title" className="rounded-[14px] bg-mint p-4 sm:p-10 lg:p-[42px]">
+      <div className="grid items-end gap-6 sm:gap-7 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
         <div>
           <p className="eyebrow mb-3">Why earlier care matters</p>
           <h2 id="early-care-title" className="section-title max-w-[17ch]">Earlier diagnosis.<br />Linked to faster healing.</h2>
-          <p className="mt-5 max-w-[48ch] text-sm leading-relaxed text-forest-muted">A wound that isn’t healing deserves a closer look. Published research links earlier diagnosis with faster healing.</p>
+          <p className="mt-4 max-w-[48ch] text-sm leading-relaxed text-forest-muted sm:mt-5">A wound that isn’t healing deserves a closer look. Published research links earlier diagnosis with faster healing.</p>
         </div>
         <div className="border-t border-forest/20 pt-5 lg:border-t-0 lg:pt-0">
-          <p className="font-display text-[72px] leading-none tabular-nums text-forest">57<span className="text-[40px]">%</span></p>
+          <p className="font-display text-[56px] leading-none tabular-nums text-forest sm:text-[72px]">57<span className="text-[32px] sm:text-[40px]">%</span></p>
           <p className="mt-3 max-w-[38ch] text-sm leading-relaxed text-forest">delayed treatment because they thought their wound would heal on its own.</p>
           <p className="mt-3 text-xs leading-relaxed text-forest-muted">US online pilot survey · 780 respondents with wounds open for at least 4 weeks · Surveyed 2021–2022.</p>
           <a href="https://doi.org/10.12968/jowc.2024.0109" target="_blank" rel="noreferrer" className="mt-1 inline-flex min-h-11 items-center text-xs text-forest underline">Read the 2024 survey <span className="sr-only">(opens in a new tab)</span></a>
         </div>
       </div>
 
-      <figure aria-labelledby="healing-evidence-title" aria-describedby="healing-evidence-caption" className="mt-8 rounded-[14px] bg-cream p-5 sm:p-7">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+      <figure aria-labelledby="healing-evidence-title" aria-describedby="healing-evidence-caption" className="mt-6 overflow-hidden rounded-[14px] bg-cream p-4 sm:mt-8 sm:p-7">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             <h3 id="healing-evidence-title" className="text-sm font-medium text-forest">A monitoring timeline</h3>
             <p className="mt-1 text-xs leading-relaxed text-forest-muted">36 daily sample values · Relative units</p>
           </div>
-          <p className="rounded-full bg-keylime px-3 py-2 text-xs text-forest">Illustrative data</p>
+          <p className="self-start rounded-full bg-keylime px-3 py-2 text-xs text-forest">Illustrative data</p>
         </div>
-        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs text-forest">
-          <span className="flex items-center gap-2"><span aria-hidden="true" className="h-3 w-3 bg-forest" /> Sample daily values</span>
-          <span className="flex items-center gap-2"><span aria-hidden="true" className="h-0.5 w-5 bg-chart-2" /> Sample trend</span>
+        <div className="mt-4 flex flex-col gap-2 text-xs text-forest sm:mt-5 sm:flex-row sm:flex-wrap sm:gap-x-6 sm:gap-y-3">
+          <span className="flex items-center gap-2"><span aria-hidden="true" className="h-3 w-3 shrink-0 bg-forest" /> Sample daily values</span>
+          <span className="flex items-center gap-2"><span aria-hidden="true" className="h-0.5 w-5 shrink-0 bg-chart-2" /> Sample trend</span>
         </div>
         <ComposedChart
           data={EARLY_CARE_DEMO}
           aspectRatio=""
-          className="mt-5 h-[300px] !touch-pan-y sm:h-[350px]"
-          margin={{ top: 24, right: 14, bottom: 40, left: 38 }}
+          className="mt-4 h-[260px] !touch-pan-y sm:mt-5 sm:h-[350px]"
+          margin={{ top: 16, right: 8, bottom: 36, left: 30 }}
           barGap={0}
           animationDuration={reducedMotion ? 0 : 1100}
           animationEasing="cubic-bezier(0.85, 0, 0.15, 1)"
@@ -94,7 +94,7 @@ export default function EarlyCareSection() {
           <summary className="flex min-h-11 list-none items-center justify-between gap-3 text-xs text-forest">View published healing evidence <span aria-hidden="true">+</span></summary>
           <p className="my-3 text-xs leading-relaxed text-forest-muted">Separate from the illustrative chart: Helsinki cohort, 182 patients. Percentages below are published healed-wound counts divided by original group sizes, unadjusted for censored follow-up. The study measured diagnostic delay, including delays within health services.</p>
           <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12081063/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-xs text-forest underline">Ahmajärvi et al., International Wound Journal (2025)<span className="sr-only"> (opens in a new tab)</span></a>
-          <div className="overflow-x-auto">
+          <div className="-mx-1 overflow-x-auto px-1 pb-1">
             <table className="w-full min-w-[380px] text-left text-xs tabular-nums text-forest">
               <caption className="sr-only">Published healed-wound counts and unadjusted percentages by diagnostic delay and months since wound onset</caption>
               <thead><tr><th scope="col" className="py-3 pr-4 font-medium">Time to diagnosis</th>{WOUND_HEALING_EVIDENCE.map(({ month }) => <th key={month} scope="col" className="py-3 pr-4 font-medium">{month} months</th>)}</tr></thead>
@@ -104,14 +104,14 @@ export default function EarlyCareSection() {
         </details>
       </figure>
 
-      <div className="mt-9">
-        <h3 className="font-display text-[30px] leading-tight text-forest">When infection goes untreated.</h3>
+      <div className="mt-7 sm:mt-9">
+        <h3 className="font-display text-[24px] leading-tight text-forest sm:text-[30px]">When infection goes untreated.</h3>
         <p className="mt-3 max-w-[66ch] text-sm leading-relaxed text-forest-muted">These are possible complications of wound infection. They aren’t inevitable, and the studies above don’t estimate your individual risk.</p>
-        <div className="mt-5 grid gap-x-8 md:grid-cols-3">
+        <div className="mt-5 grid gap-x-8 sm:grid-cols-2 md:grid-cols-3">
           {COMPLICATIONS.map(({ title, description, href, label }) => (
             <div key={title} className="border-t border-forest/20 pt-5">
               <p className="text-xs text-forest-muted">{label}</p>
-              <h4 className="font-display mt-2 text-[28px] leading-tight text-forest">{title}</h4>
+              <h4 className="font-display mt-2 text-[24px] leading-tight text-forest sm:text-[28px]">{title}</h4>
               <p className="mt-3 text-[13px] leading-relaxed text-forest-muted">{description}</p>
               <a href={href} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center text-xs text-forest underline">Read NHS guidance<span className="sr-only"> on {title} (opens in a new tab)</span></a>
             </div>

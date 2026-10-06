@@ -12,9 +12,15 @@
   position: relative;
   isolation: isolate;
   aspect-ratio: 16 / 10;
-  min-height: 280px;
+  min-height: 220px;
   overflow: hidden;
   background: var(--keylime);
+}
+
+@media (min-width: 640px) {
+  .photoFrame {
+    min-height: 280px;
+  }
 }
 
 .uploadPanel, .samplePhoto {
@@ -145,8 +151,14 @@
 .insights {
   position: relative;
   min-height: 85px;
-  margin: 0 20px 8px;
+  margin: 0 16px 8px;
   border-top: 1px solid var(--border);
+}
+
+@media (min-width: 640px) {
+  .insights {
+    margin-inline: 20px;
+  }
 }
 
 .privacyNote {
@@ -162,10 +174,25 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 20px 0;
+  gap: 8px;
+  padding: 16px 0;
   opacity: 0;
   animation-name: results-arrive;
+}
+
+.results dd {
+  font-size: 18px;
+}
+
+@media (min-width: 640px) {
+  .results {
+    gap: 10px;
+    padding: 20px 0;
+  }
+
+  .results dd {
+    font-size: 22px;
+  }
 }
 
 .uploadPanel, .uploadButton, .samplePhoto, .cursor, .clickRing,

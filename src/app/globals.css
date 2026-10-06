@@ -105,12 +105,14 @@
   html {
     scroll-behavior: smooth;
     scrollbar-color: var(--forest-muted) var(--cream);
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     background: var(--cream);
     color: var(--ink);
     font-family: var(--font-suisse), Inter, system-ui, sans-serif;
+    overflow-x: clip;
   }
 
   ::selection {
@@ -157,12 +159,18 @@
 
 .section-title {
   font-family: var(--font-faire), "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(2.5rem, 4.5vw, 3.5rem);
+  font-size: clamp(2rem, 8vw, 3.5rem);
   font-weight: 300;
   line-height: 1.08;
   letter-spacing: -0.025em;
   text-wrap: balance;
   color: var(--forest);
+}
+
+@media (min-width: 640px) {
+  .section-title {
+    font-size: clamp(2.5rem, 4.5vw, 3.5rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -171,5 +179,21 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile hardening: keep media, tables and charts inside the viewport. */
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+@media (max-width: 639px) {
+  section[id] {
+    scroll-margin-top: 16px;
   }
 }

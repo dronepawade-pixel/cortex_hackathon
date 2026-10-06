@@ -80,9 +80,9 @@ export default function HeroWalkthrough() {
     <aside
       ref={container}
       aria-label="Animated introduction to using ScanAid"
-      className="flex min-w-0 flex-col rounded-[14px] bg-slate p-4 sm:p-6 lg:p-7"
+      className="flex min-w-0 flex-col overflow-hidden rounded-[14px] bg-slate p-3 sm:p-6 lg:p-7"
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 sm:mb-4 sm:gap-3">
         <p className="flex items-center gap-2 text-xs text-forest"><span className="size-1.5 rounded-full bg-forest" /> See how it works</p>
         <div className="flex items-center gap-1">
           {!reducedMotion && (
@@ -105,9 +105,9 @@ export default function HeroWalkthrough() {
       </div>
 
       <div className={styles.window}>
-        <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <span className="flex items-center gap-2 text-sm font-medium text-forest"><Leaf className="size-4" strokeWidth={1.5} /> Photo analyzer</span>
-          <span className="rounded-full bg-keylime px-3 py-1.5 text-[10px] text-forest">Guided demo</span>
+        <div className="flex items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-forest"><Leaf className="size-4 shrink-0" strokeWidth={1.5} /> <span className="truncate">Photo analyzer</span></span>
+          <span className="shrink-0 rounded-full bg-keylime px-3 py-1.5 text-[10px] text-forest">Guided demo</span>
         </div>
 
         <div
@@ -140,9 +140,9 @@ export default function HeroWalkthrough() {
 
             <div className={styles.uploadPanel} aria-hidden={stage !== "upload"}>
               <div className={styles.uploadContent}>
-                <span className="mb-4 grid size-14 place-items-center rounded-full bg-mint text-forest"><ImagePlus className="size-6" strokeWidth={1.5} /></span>
-                <p className="font-display mb-2 text-[30px] leading-[1.15] text-forest">Every reading starts here.</p>
-                <p className="mb-5 text-xs text-forest-muted">One photo. A little more insight.</p>
+                <span className="mb-3 grid size-12 place-items-center rounded-full bg-mint text-forest sm:mb-4 sm:size-14"><ImagePlus className="size-5 sm:size-6" strokeWidth={1.5} /></span>
+                <p className="font-display mb-2 text-[24px] leading-[1.15] text-forest sm:text-[30px]">Every reading starts here.</p>
+                <p className="mb-4 text-xs text-forest-muted sm:mb-5">One photo. A little more insight.</p>
                 <button
                   type="button"
                   disabled={redness == null || imageError}
@@ -178,7 +178,7 @@ export default function HeroWalkthrough() {
             )}
           </div>
 
-          <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 px-5 py-4 text-forest">
+          <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 px-4 py-3 text-forest sm:min-h-16 sm:gap-3 sm:px-5 sm:py-4">
             {stage === "upload" && !imageError ? (
               <span className="flex items-center gap-2 text-xs"><LockKeyhole className="size-3.5" /> Your photo stays yours.</span>
             ) : (
@@ -223,8 +223,8 @@ export default function HeroWalkthrough() {
           </div>
         </div>
 
-        <div className="border-t border-border px-5 py-4">
-          <ol className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 text-[10px] text-forest-muted">
+        <div className="border-t border-border px-4 py-3 sm:px-5 sm:py-4">
+          <ol className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] text-forest-muted sm:justify-between">
             {["Upload photo", "Scan locally", "Add readings"].map((label, index) => (
               <li key={label} aria-current={step === index ? "step" : undefined} className={`flex items-center gap-1.5 ${step >= index ? "text-forest" : ""}`}>
                 {step > index ? <CircleCheck className="size-3.5" /> : <span className={`grid size-4 place-items-center rounded-full text-[9px] ${step === index ? "bg-forest text-cream" : "bg-keylime"}`}>{index + 1}</span>}

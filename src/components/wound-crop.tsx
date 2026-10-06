@@ -116,7 +116,7 @@ export default function WoundCrop({ src, onRednessChange, onClear }: WoundCropPr
         ref={frameRef}
         role="application"
         aria-label="Wound region selector. Drag across the wound in the photo."
-        className="relative aspect-[16/10] min-h-36 w-full touch-none overflow-hidden rounded-[14px] bg-forest/10"
+        className="relative aspect-[4/3] min-h-36 w-full touch-none overflow-hidden rounded-[14px] bg-forest/10 select-none sm:aspect-[16/10]"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -125,12 +125,12 @@ export default function WoundCrop({ src, onRednessChange, onClear }: WoundCropPr
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img ref={imageRef} src={src} alt="Uploaded wound; drag over the wound to select its region" onLoad={measureImage} className="absolute inset-0 size-full object-contain" draggable={false} />
         <div className="pointer-events-none absolute inset-0 bg-forest/10" />
-        {regionStyle && <div className="pointer-events-none absolute z-10 border-2 border-cream bg-cream/10 shadow-[0_0_0_9999px_rgba(15,62,23,0.3)]" style={regionStyle as CSSProperties}><span className="absolute -top-7 left-0 flex items-center gap-1 rounded-full bg-cream px-2 py-1 text-[10px] text-forest"><Crop className="size-3" /> Selected region</span></div>}
-        {!selection && !draft && <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center"><span className="flex items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-[11px] text-forest"><Move className="size-3.5" /> Drag over the wound to select it</span></div>}
+        {regionStyle && <div className="pointer-events-none absolute z-10 border-2 border-cream bg-cream/10 shadow-[0_0_0_9999px_rgba(15,62,23,0.3)]" style={regionStyle as CSSProperties}><span className="absolute bottom-1 left-1 flex items-center gap-1 rounded-full bg-cream px-2 py-1 text-[10px] whitespace-nowrap text-forest"><Crop className="size-3" /> Selected region</span></div>}
+        {!selection && !draft && <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3"><span className="flex max-w-full items-center gap-2 rounded-full bg-cream/95 px-3 py-2 text-center text-[11px] text-forest"><Move className="size-3.5 shrink-0" /> Drag over the wound to select it</span></div>}
       </div>
-      <div className="mt-2 flex min-h-10 flex-wrap items-center justify-between gap-2 text-[11px] text-forest-muted">
-        <span>{selection ? <span className="flex items-center gap-1.5 text-forest"><Check className="size-3.5" /> Redness calculated from selected pixels only.</span> : "Select the wound area, not the surrounding skin or background."}</span>
-        {selection && <button type="button" onClick={clearSelection} className="inline-flex min-h-10 items-center gap-1.5 text-forest underline"><RotateCcw className="size-3" /> Select again</button>}
+      <div className="mt-2 flex min-h-10 flex-col gap-1 text-[11px] text-forest-muted sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-2">
+        <span>{selection ? <span className="flex items-center gap-1.5 text-forest"><Check className="size-3.5 shrink-0" /> Redness calculated from selected pixels only.</span> : "Select the wound area, not the surrounding skin or background."}</span>
+        {selection && <button type="button" onClick={clearSelection} className="inline-flex min-h-10 w-fit items-center gap-1.5 text-forest underline"><RotateCcw className="size-3" /> Select again</button>}
       </div>
     </div>
   );

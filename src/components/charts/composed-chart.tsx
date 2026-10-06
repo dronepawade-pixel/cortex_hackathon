@@ -303,7 +303,7 @@ export function ComposedChart({
     <div
       className={cn("relative w-full", className)}
       ref={containerRef}
-      style={{ aspectRatio, touchAction: "none" }}
+      style={{ aspectRatio, touchAction: "pan-y pinch-zoom" }}
     >
       <ParentSize debounceTime={10}>
         {({ width, height }) => (

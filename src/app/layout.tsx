@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -20,6 +20,12 @@ export const metadata: Metadata = {
     "Early detection of impaired wound healing via photo + temp/pH tracking. Hackathon MVP.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -27,7 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${faire.variable} ${suisse.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="flex min-h-full flex-col overflow-x-clip antialiased">{children}</body>
     </html>
   );
 }
