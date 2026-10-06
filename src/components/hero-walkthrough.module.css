@@ -11,15 +11,18 @@
 .photoFrame {
   position: relative;
   isolation: isolate;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   min-height: 220px;
+  max-height: 340px;
   overflow: hidden;
   background: var(--keylime);
 }
 
 @media (min-width: 640px) {
   .photoFrame {
+    aspect-ratio: 16 / 10;
     min-height: 280px;
+    max-height: none;
   }
 }
 
@@ -65,11 +68,25 @@
   animation-name: photo-arrive;
 }
 
+/* Keep the wound centered on narrow screens — the frame is taller on
+   mobile so `cover` no longer slices the top/bottom of the hand. */
+.samplePhoto img {
+  object-position: 50% 42% !important;
+}
+
+@media (min-width: 640px) {
+  .samplePhoto img {
+    object-position: 50% 58% !important;
+  }
+}
+
 .cursor {
   position: absolute;
   z-index: 6;
-  top: calc(50% + 76px);
-  left: 57%;
+  top: 50%;
+  left: 50%;
+  margin-top: -14px;
+  margin-left: -14px;
   pointer-events: none;
   opacity: 0;
   animation-name: cursor-click;
@@ -78,8 +95,10 @@
 .clickRing {
   position: absolute;
   z-index: 5;
-  top: calc(50% + 62px);
-  left: calc(57% - 14px);
+  top: 50%;
+  left: 50%;
+  margin-top: -14px;
+  margin-left: -14px;
   width: 28px;
   height: 28px;
   border: 1.5px solid var(--cream);
@@ -113,11 +132,15 @@
 .photoLabel {
   position: absolute;
   z-index: 4;
-  top: 14px;
-  left: 14px;
+  top: 12px;
+  left: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   border-radius: 999px;
   padding: 7px 11px;
   background: var(--cream);
@@ -286,9 +309,17 @@
   filter: none;
 }
 
+@media (min-width: 641px) {
+  .photoLabel {
+    top: 14px;
+    left: 14px;
+  }
+}
+
 @media (max-width: 640px) {
-  .cursor { top: calc(50% + 94px); }
-  .clickRing { top: calc(50% + 80px); }
+  .scanCorners {
+    inset: 12px;
+  }
 }
 
 @media (max-width: 380px) {

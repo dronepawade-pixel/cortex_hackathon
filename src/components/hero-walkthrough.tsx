@@ -129,7 +129,7 @@ export default function HeroWalkthrough() {
                 fill
                 preload
                 sizes="(max-width: 640px) 90vw, (max-width: 1024px) 85vw, 520px"
-                className="object-cover object-[50%_58%]"
+                className="object-cover object-center"
                 onLoad={(event) => {
                   try { setRedness(estimateRedness(event.currentTarget)); }
                   catch { setImageError(true); }
