@@ -1,0 +1,270 @@
+.window {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--cream);
+}
+
+.scene {
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.photoFrame {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 16 / 10;
+  min-height: 280px;
+  overflow: hidden;
+  background: var(--keylime);
+}
+
+.uploadPanel, .samplePhoto {
+  position: absolute;
+  inset: 0;
+}
+
+.uploadPanel {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  background: var(--keylime);
+  animation-name: upload-exit;
+}
+
+.uploadContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.uploadButton {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  background: var(--forest);
+  color: var(--cream);
+  font-size: 12px;
+  animation-name: upload-press;
+}
+
+.uploadButton:disabled { cursor: wait; }
+.uploadButton:hover { background: #0c2f10; }
+
+.samplePhoto {
+  opacity: 0;
+  animation-name: photo-arrive;
+}
+
+.cursor {
+  position: absolute;
+  z-index: 6;
+  top: calc(50% + 76px);
+  left: 57%;
+  pointer-events: none;
+  opacity: 0;
+  animation-name: cursor-click;
+}
+
+.clickRing {
+  position: absolute;
+  z-index: 5;
+  top: calc(50% + 62px);
+  left: calc(57% - 14px);
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--cream);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation-name: click-pulse;
+}
+
+.scanBeam {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 25%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg, transparent 0%, #e1f4df08 15%, #e1f4df50 44%, #fffefcb3 50%, #b1dbb850 56%, transparent 100%);
+  animation-name: scan-pass;
+}
+
+.scanBeam span {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: #fffefce6;
+}
+
+.photoLabel {
+  position: absolute;
+  z-index: 4;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--cream);
+  color: var(--forest);
+  font-size: 10px;
+  opacity: 0;
+  animation-name: photo-label;
+}
+
+.scanCorners {
+  position: absolute;
+  z-index: 4;
+  inset: 14px;
+  pointer-events: none;
+  opacity: 0;
+  color: var(--cream);
+  animation-name: scan-frame;
+}
+
+.scanCorners span {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--cream);
+}
+.scanCorners span:nth-child(1) { top: 0; left: 0; border-top: 1px solid; border-left: 1px solid; }
+.scanCorners span:nth-child(2) { top: 0; right: 0; border-top: 1px solid; border-right: 1px solid; }
+.scanCorners span:nth-child(3) { bottom: 0; left: 0; border-bottom: 1px solid; border-left: 1px solid; }
+.scanCorners span:nth-child(4) { bottom: 0; right: 0; border-bottom: 1px solid; border-right: 1px solid; }
+
+.insights {
+  position: relative;
+  min-height: 85px;
+  margin: 0 20px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.privacyNote {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation-name: privacy-exit;
+}
+
+.results {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 20px 0;
+  opacity: 0;
+  animation-name: results-arrive;
+}
+
+.uploadPanel, .uploadButton, .samplePhoto, .cursor, .clickRing,
+.scanBeam, .photoLabel, .scanCorners, .privacyNote, .results {
+  animation-duration: var(--demo-duration);
+  animation-delay: var(--demo-delay);
+  animation-timing-function: var(--ease);
+  animation-fill-mode: both;
+  animation-play-state: running;
+}
+
+.scene[data-paused="true"] *, .scene[data-paused="true"] :global(.ll-run) > span {
+  animation-play-state: paused !important;
+}
+
+@keyframes cursor-click {
+  0%, 3% { opacity: 0; transform: translate(70px, 65px) rotate(-8deg); }
+  7% { opacity: 1; transform: translate(45px, 30px) rotate(-3deg); }
+  15%, 17% { opacity: 1; transform: translate(0, 0) scale(1); }
+  18.5% { opacity: 1; transform: translate(0, 2px) scale(0.84); }
+  21% { opacity: 1; transform: translate(0, 0) scale(1); }
+  26%, 100% { opacity: 0; transform: translate(15px, 8px) scale(1); }
+}
+
+@keyframes upload-press {
+  0%, 17%, 23%, 100% { transform: scale(1); }
+  18.5% { transform: scale(0.96); }
+}
+
+@keyframes click-pulse {
+  0%, 17% { opacity: 0; transform: scale(0.4); }
+  18.5% { opacity: 0.8; transform: scale(0.7); }
+  24%, 100% { opacity: 0; transform: scale(2.4); }
+}
+
+@keyframes upload-exit {
+  0%, 23% { opacity: 1; transform: scale(1); }
+  29%, 100% { opacity: 0; transform: scale(0.97); visibility: hidden; }
+}
+
+@keyframes photo-arrive {
+  0%, 24% { opacity: 0; transform: translateY(14px) scale(1.04); filter: blur(5px); }
+  32%, 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes photo-label {
+  0%, 29% { opacity: 0; transform: translateY(-5px); }
+  35%, 100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scan-pass {
+  0%, 31% { opacity: 0; transform: translateY(-100%); }
+  34% { opacity: 0.9; transform: translateY(0); }
+  47% { opacity: 0.9; transform: translateY(300%); }
+  60% { opacity: 0.9; transform: translateY(0); }
+  73% { opacity: 0.9; transform: translateY(300%); }
+  79%, 100% { opacity: 0; transform: translateY(400%); }
+}
+
+@keyframes scan-frame {
+  0%, 31% { opacity: 0; }
+  36%, 73% { opacity: 0.85; }
+  80%, 100% { opacity: 0; }
+}
+
+@keyframes privacy-exit {
+  0%, 78% { opacity: 1; transform: translateY(0); }
+  83%, 100% { opacity: 0; transform: translateY(-6px); visibility: hidden; }
+}
+
+@keyframes results-arrive {
+  0%, 79% { opacity: 0; transform: translateY(10px); filter: blur(3px); }
+  88%, 100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.scene[data-reduced="true"] .uploadPanel,
+.scene[data-reduced="true"] .cursor,
+.scene[data-reduced="true"] .clickRing,
+.scene[data-reduced="true"] .scanBeam,
+.scene[data-reduced="true"] .scanCorners,
+.scene[data-reduced="true"] .privacyNote {
+  display: none;
+}
+
+.scene[data-reduced="true"] .samplePhoto,
+.scene[data-reduced="true"] .photoLabel,
+.scene[data-reduced="true"] .results {
+  animation: none;
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (max-width: 640px) {
+  .cursor { top: calc(50% + 94px); }
+  .clickRing { top: calc(50% + 80px); }
+}
+
+@media (max-width: 380px) {
+  .uploadContent { padding: 16px; }
+  .uploadButton { padding-inline: 15px; }
+}
