@@ -24,6 +24,9 @@
     min-height: 280px;
     max-height: none;
   }
+  .cursor, .clickRing {
+    top: 68%;
+  }
 }
 
 .uploadPanel, .samplePhoto {
@@ -83,10 +86,10 @@
 .cursor {
   position: absolute;
   z-index: 6;
-  top: 50%;
+  top: 72%;
   left: 50%;
   margin-top: -14px;
-  margin-left: -14px;
+  margin-left: -10px;
   pointer-events: none;
   opacity: 0;
   animation-name: cursor-click;
@@ -95,7 +98,7 @@
 .clickRing {
   position: absolute;
   z-index: 5;
-  top: 50%;
+  top: 72%;
   left: 50%;
   margin-top: -14px;
   margin-left: -14px;
@@ -232,8 +235,8 @@
 }
 
 @keyframes cursor-click {
-  0%, 3% { opacity: 0; transform: translate(70px, 65px) rotate(-8deg); }
-  7% { opacity: 1; transform: translate(45px, 30px) rotate(-3deg); }
+  0%, 3% { opacity: 0; transform: translate(70px, 30px) rotate(-8deg); }
+  7% { opacity: 1; transform: translate(40px, 14px) rotate(-3deg); }
   15%, 17% { opacity: 1; transform: translate(0, 0) scale(1); }
   18.5% { opacity: 1; transform: translate(0, 2px) scale(0.84); }
   21% { opacity: 1; transform: translate(0, 0) scale(1); }

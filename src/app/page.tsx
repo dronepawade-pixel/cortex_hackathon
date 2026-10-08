@@ -55,7 +55,7 @@ const FIELDS = [
   },
   {
     key: "redness", label: "Redness", unit: "%", min: 0, max: 100, step: 1,
-    hint: "Estimated from your photo; adjust if needed.",
+    hint: "Auto-detected from your photo. Not editable.",
   },
 ] as const;
 
@@ -88,7 +88,12 @@ export default function Home() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraFileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const photoRequest = useRef(0);
   const reducedMotion = useReducedMotion();
 
@@ -103,7 +108,7 @@ export default function Home() {
     const value = Number(measurements[key]);
     return measurements[key].trim() === "" || !Number.isFinite(value) || value < min || value > max;
   });
-  const live = invalidFields.length === 0
+  const live = photoUrl && invalidFields.length === 0
     ? scoreReading({
         day: current.day + 1,
         date: new Date(),
@@ -122,10 +127,13 @@ export default function Home() {
 
   function removePhoto() {
     photoRequest.current += 1;
+    stopCamera();
     setPhotoUrl(null);
     setPhotoError("");
     setPhotoLoading(false);
+    setMeasurements((values) => ({ ...values, redness: "" }));
     if (fileRef.current) fileRef.current.value = "";
+    if (cameraFileRef.current) cameraFileRef.current.value = "";
   }
 
   function resetReading(nextDemo: Demo = demo) {
@@ -145,10 +153,7 @@ export default function Home() {
     resetReading(nextDemo);
   }
 
-  async function onPhoto(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+  async function processPhotoFile(file: File) {
     if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) {
       setPhotoError("Choose an image smaller than 10 MB, then try again.");
       return;
@@ -165,6 +170,7 @@ export default function Home() {
         URL.revokeObjectURL(url);
         return;
       }
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
       setPhotoUrl(url);
       setMeasurements((values) => ({ ...values, redness: "" }));
     } catch {
@@ -174,6 +180,76 @@ export default function Home() {
       if (request === photoRequest.current) setPhotoLoading(false);
     }
   }
+
+  async function onPhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    await processPhotoFile(file);
+  }
+
+  function stopCamera() {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setCameraOpen(false);
+  }
+
+  async function openCamera() {
+    setCameraError("");
+    // Native camera fallback for devices without getUserMedia support.
+    if (!navigator.mediaDevices?.getUserMedia) {
+      cameraFileRef.current?.click();
+      return;
+    }
+    setCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+        audio: false,
+      });
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        await video.play().catch(() => {});
+      }
+    } catch {
+      // Permission denied or no camera: fall back to the native picker.
+      stopCamera();
+      if (cameraFileRef.current) cameraFileRef.current.click();
+      else setCameraError("Camera isn’t available. Try uploading a photo instead.");
+    }
+  }
+
+  async function captureFromCamera() {
+    const video = videoRef.current;
+    if (!video || video.videoWidth === 0) {
+      setCameraError("Camera isn’t ready yet. Wait a moment and try again.");
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), "image/jpeg", 0.92));
+    if (!blob) {
+      setCameraError("Couldn’t capture that frame. Try again.");
+      return;
+    }
+    stopCamera();
+    await processPhotoFile(new File([blob], `wound-${Date.now()}.jpg`, { type: "image/jpeg" }));
+  }
+
+  useEffect(() => () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  useEffect(() => {
+    if (cameraOpen && streamRef.current && videoRef.current && !videoRef.current.srcObject) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [cameraOpen]);
 
   return (
     <div className="mx-auto w-full max-w-[1240px] overflow-x-clip px-4 sm:px-7 lg:px-10">
@@ -189,6 +265,7 @@ export default function Home() {
           <a href="#timeline" className="inline-flex min-h-11 shrink-0 items-center transition-colors hover:text-forest">Timeline</a>
           <a href="#indicators" className="inline-flex min-h-11 shrink-0 items-center transition-colors hover:text-forest">Indicators</a>
           <a href="#early-care" className="hidden min-h-11 shrink-0 items-center transition-colors hover:text-forest sm:inline-flex">Why early care</a>
+          <a href="/how-it-works" className="inline-flex min-h-11 shrink-0 items-center transition-colors hover:text-forest">How it works</a>
         </nav>
         <a href="#analyzer" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-forest px-4 text-[13px] text-cream transition-colors hover:bg-[#0c2f10] sm:gap-3 sm:px-5">Try the demo <ArrowRight className="size-3.5" /></a>
       </header>
@@ -274,86 +351,169 @@ export default function Home() {
                 onChange={onPhoto}
                 aria-label="Choose a wound photo"
               />
-              {photoUrl ? <WoundCrop key={photoUrl} src={photoUrl} onRednessChange={(value) => setMeasurements((values) => ({ ...values, redness: String(value) }))} onClear={() => setMeasurements((values) => ({ ...values, redness: "" }))} /> : <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
+              <input
+                ref={cameraFileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="sr-only"
+                tabIndex={-1}
                 disabled={photoLoading}
+                onChange={onPhoto}
+                aria-label="Take a wound photo"
+              />
+              {photoUrl ? <WoundCrop key={photoUrl} src={photoUrl} onRednessChange={(value) => setMeasurements((values) => ({ ...values, redness: String(value) }))} onClear={() => setMeasurements((values) => ({ ...values, redness: "" }))} /> : <div
                 aria-describedby="photo-hint photo-feedback"
-                className="flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-[14px] bg-cream/80 px-5 py-7 text-center text-forest transition-colors hover:bg-cream disabled:cursor-wait disabled:opacity-70"
+                className="flex min-h-36 w-full flex-col items-center justify-center gap-2 rounded-[14px] bg-cream/80 px-5 py-7 text-center text-forest"
               >
                 <span className="mb-1 grid size-10 place-items-center rounded-full bg-keylime"><Camera className="size-5" strokeWidth={1.5} /></span>
                 <span className="text-sm font-medium">{photoLoading ? "Reading your photo…" : "Add a wound photo"}</span>
-                <span id="photo-hint" className="text-xs text-forest-muted">Redness is calculated from your selected region · Max. 10 MB</span>
-              </button>}
+                <span id="photo-hint" className="text-xs text-forest-muted">Redness is auto-detected from your selected region · Max. 10 MB</span>
+                <span className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={photoLoading}
+                    className="min-h-11 rounded-full px-5 text-xs"
+                  >
+                    Upload image
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={openCamera}
+                    disabled={photoLoading}
+                    className="min-h-11 rounded-full px-5 text-xs"
+                  >
+                    <Camera className="size-3.5" /> Take photo
+                  </Button>
+                </span>
+              </div>}
+              {cameraOpen && (
+                <div role="dialog" aria-modal="true" aria-label="Take a wound photo" className="fixed inset-0 z-50 grid place-items-center bg-forest/60 p-4">
+                  <div className="w-full max-w-md rounded-[14px] bg-cream p-4 text-forest">
+                    <h3 className="text-sm font-medium">Take a photo</h3>
+                    <p className="mt-1 text-xs text-forest-muted">Point at the wound, then capture. The photo never leaves your device.</p>
+                    <div className="mt-3 overflow-hidden rounded-xl bg-forest/10">
+                      <video ref={videoRef} playsInline muted autoPlay className="aspect-[4/3] w-full object-cover" />
+                    </div>
+                    {cameraError && <p role="alert" className="mt-2 text-xs text-destructive">{cameraError}</p>}
+                    <div className="mt-3 flex justify-end gap-2">
+                      <Button type="button" variant="ghost" onClick={stopCamera} className="min-h-11 rounded-full px-4 text-xs">Cancel</Button>
+                      <Button type="button" onClick={captureFromCamera} className="min-h-11 rounded-full px-5 text-xs">
+                        <Camera className="size-3.5" /> Capture
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div id="photo-feedback" role="status" className="mt-2 text-xs leading-relaxed text-forest-muted">
                 {photoError ? <span className="text-destructive">{photoError}</span> : photoUrl ? (
                   <span className="flex flex-wrap items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5"><Check className="size-3.5" /> Photo stays on your device.</span>
                     <button type="button" onClick={removePhoto} className="inline-flex min-h-11 items-center gap-1.5 underline"><X className="size-3" /> Remove photo</button>
                   </span>
-                ) : "No photo? You can still explore the sample measurements below."}
+                ) : (cameraError ? <span className="text-destructive">{cameraError}</span> : "Add a photo to unlock measurements. Redness is auto-detected and can’t be edited.")}
               </div>
 
-              <div className="mt-6 grid gap-6 sm:mt-7 sm:grid-cols-2 sm:gap-7">
-                {FIELDS.map(({ key, label, unit, min, max, step, hint }) => {
-                  const invalid = invalidFields.some((field) => field.key === key);
-                  return <div key={key} className="min-w-0">
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <Label htmlFor={`reading-${key}`} className="min-w-0 flex-1 text-xs font-medium text-forest">{label}</Label>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <Input
-                          id={`reading-${key}`}
-                          type="number"
-                          inputMode="decimal"
-                          required
+              {!photoUrl && !photoLoading && (
+                <p role="status" className="mt-6 text-xs leading-relaxed text-forest-muted">
+                  Add a photo to unlock measurements. Redness is auto-detected and can’t be edited.
+                </p>
+              )}
+              <div
+                id="measurement-dashboard"
+                aria-hidden={!photoUrl || undefined}
+                className={`grid transition-[grid-template-rows,opacity,translate] ${reducedMotion ? "duration-0" : "duration-500 ease-out"} ${photoUrl ? "mt-6 grid-rows-[1fr] translate-y-0 opacity-100 sm:mt-7" : "grid-rows-[0fr] -translate-y-2 opacity-0"}`}
+              >
+                <div className={`min-h-0 overflow-hidden ${photoUrl ? "visible" : "invisible"}`}>
+                  <div className="grid gap-6 sm:grid-cols-2 sm:gap-7">
+                    {FIELDS.map(({ key, label, unit, min, max, step, hint }, index) => {
+                      const invalid = invalidFields.some((field) => field.key === key);
+                      const isRedness = key === "redness";
+                      const locked = isRedness;
+                      const hintText = isRedness
+                        ? (measurements.redness === ""
+                            ? "Select the wound region in the photo to auto-detect redness."
+                            : "Auto-detected from your photo. Not editable.")
+                        : hint;
+                      return <div
+                        key={key}
+                        inert={!photoUrl || undefined}
+                        className={`min-w-0 transition-[opacity,translate] ${reducedMotion ? "duration-0" : "duration-500 ease-out"} ${photoUrl ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}
+                        style={reducedMotion ? undefined : { transitionDelay: photoUrl ? `${100 + index * 70}ms` : "0ms" }}
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-2">
+                          <Label htmlFor={`reading-${key}`} className="min-w-0 flex-1 text-xs font-medium text-forest">{label}{isRedness && <span className="ml-1.5 rounded-full bg-keylime px-2 py-0.5 text-[10px] text-forest-muted">Auto</span>}</Label>
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            <Input
+                              id={`reading-${key}`}
+                              type="number"
+                              inputMode="decimal"
+                              required
+                              min={min}
+                              max={max}
+                              step={step}
+                              value={measurements[key]}
+                              onChange={(event) => { if (!locked) setMeasurements((values) => ({ ...values, [key]: event.target.value })); }}
+                              readOnly={locked || undefined}
+                              disabled={locked}
+                              tabIndex={photoUrl ? undefined : -1}
+                              aria-invalid={invalid}
+                              aria-describedby={`hint-${key}`}
+                              aria-readonly={locked || undefined}
+                              placeholder={isRedness && measurements[key] === "" ? "—" : undefined}
+                              className="h-11 w-[72px] rounded-lg border-0 bg-cream px-2 text-right text-sm tabular-nums text-forest disabled:cursor-not-allowed disabled:opacity-60 sm:w-[76px]"
+                            />
+                            <span className="min-w-5 text-xs text-forest-muted">{unit}</span>
+                          </div>
+                        </div>
+                        <Slider
+                          value={[Math.max(min, Math.min(max, Number(measurements[key]) || min))]}
                           min={min}
                           max={max}
                           step={step}
-                          value={measurements[key]}
-                          onChange={(event) => setMeasurements((values) => ({ ...values, [key]: event.target.value }))}
-                          aria-invalid={invalid}
-                          aria-describedby={`hint-${key}`}
-                          className="h-11 w-[72px] rounded-lg border-0 bg-cream px-2 text-right text-sm tabular-nums text-forest sm:w-[76px]"
+                          disabled={locked}
+                          aria-label={`${label} in ${unit}`}
+                          aria-disabled={locked || undefined}
+                          tabIndex={photoUrl && !locked ? undefined : -1}
+                          onValueChange={(value) => { if (!locked) setMeasurements((values) => ({ ...values, [key]: String(Array.isArray(value) ? value[0] : value) })); }}
+                          className="[&_[data-slot=slider-track]]:bg-forest/15 [&_[data-slot=slider-thumb]]:size-4 data-disabled:opacity-60"
                         />
-                        <span className="min-w-5 text-xs text-forest-muted">{unit}</span>
+                        <p id={`hint-${key}`} className={`mt-3 text-[11px] leading-relaxed ${invalid && !locked ? "text-destructive" : "text-forest-muted"}`}>
+                          {invalid && !locked ? `Enter a value between ${min} and ${max} ${unit}.` : hintText}
+                        </p>
+                      </div>;
+                    })}
+                  </div>
+                  <fieldset
+                    inert={!photoUrl || undefined}
+                    className={`mt-6 border-t border-forest/15 pt-5 transition-[opacity,translate] sm:mt-7 ${reducedMotion ? "" : "duration-500 ease-out"} ${photoUrl ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"}`}
+                    style={reducedMotion ? undefined : { transitionDelay: photoUrl ? "380ms" : "0ms" }}
+                  >
+                    <legend className="sr-only">Moisture level</legend>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                      <span aria-hidden="true" className="text-xs font-medium text-forest">Moisture level</span>
+                      <div className="grid grid-cols-3 gap-1 rounded-2xl bg-cream/60 p-1 sm:flex sm:rounded-full">
+                        {(["dry", "moist", "wet"] as const).map((value) => (
+                          <label key={value} className={`relative inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl px-2 text-xs capitalize transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-forest sm:rounded-full sm:px-5 ${moisture === value ? "bg-forest text-cream" : "text-forest hover:bg-cream"}`}>
+                            <input
+                              type="radio"
+                              name="moisture"
+                              value={value}
+                              checked={moisture === value}
+                              onChange={() => setMoisture(value)}
+                              tabIndex={photoUrl ? undefined : -1}
+                              className="sr-only"
+                            />
+                            {value}
+                          </label>
+                        ))}
                       </div>
                     </div>
-                    <Slider
-                      value={[Math.max(min, Math.min(max, Number(measurements[key]) || min))]}
-                      min={min}
-                      max={max}
-                      step={step}
-                      aria-label={`${label} in ${unit}`}
-                      onValueChange={(value) => setMeasurements((values) => ({ ...values, [key]: String(Array.isArray(value) ? value[0] : value) }))}
-                      className="[&_[data-slot=slider-track]]:bg-forest/15 [&_[data-slot=slider-thumb]]:size-4"
-                    />
-                    <p id={`hint-${key}`} className={`mt-3 text-[11px] leading-relaxed ${invalid ? "text-destructive" : "text-forest-muted"}`}>
-                      {invalid ? `Enter a value between ${min} and ${max} ${unit}.` : hint}
-                    </p>
-                  </div>;
-                })}
-              </div>
-              <fieldset className="mt-6 border-t border-forest/15 pt-5 sm:mt-7">
-                <legend className="sr-only">Moisture level</legend>
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-                  <span aria-hidden="true" className="text-xs font-medium text-forest">Moisture level</span>
-                  <div className="grid grid-cols-3 gap-1 rounded-2xl bg-cream/60 p-1 sm:flex sm:rounded-full">
-                    {(["dry", "moist", "wet"] as const).map((value) => (
-                      <label key={value} className={`relative inline-flex min-h-11 cursor-pointer items-center justify-center rounded-xl px-2 text-xs capitalize transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-forest sm:rounded-full sm:px-5 ${moisture === value ? "bg-forest text-cream" : "text-forest hover:bg-cream"}`}>
-                        <input
-                          type="radio"
-                          name="moisture"
-                          value={value}
-                          checked={moisture === value}
-                          onChange={() => setMoisture(value)}
-                          className="sr-only"
-                        />
-                        {value}
-                      </label>
-                    ))}
-                  </div>
+                  </fieldset>
                 </div>
-              </fieldset>
+              </div>
             </div>
 
             <div className="flex min-w-0 flex-col rounded-[14px] bg-keylime p-4 sm:p-8">
@@ -363,7 +523,7 @@ export default function Home() {
                 <Gauge orientation="linear" minWidth={0} value={live.score} activeFill={FOREST} inactiveFill={FOREST} inactiveFillOpacity={0.12} useGradient={false} linearHeight={14} spacing={30} />
                 <div className="mt-6 sm:mt-7" role="status" aria-live="polite" aria-atomic="true"><h4 className="font-display text-[26px] leading-tight text-forest sm:text-[30px]">{live.status === "on-track" ? "Moving in the right direction." : live.status === "watch" ? "Worth a closer look." : "A signal to act sooner."}</h4><p className="mt-3 text-sm leading-relaxed text-forest-muted">{live.status === "on-track" ? "Area, redness, temperature and pH are converging toward the healthy range." : live.status === "watch" ? "Healing is slowing against the previous reading. Re-measure in 24 hours and check the temperature and pH trend." : "The measurements suggest an impaired-healing pattern. Ask a clinician to review the changes rather than waiting for visible signs."}</p></div>
                 <dl className="mt-6 space-y-3 border-t border-forest/15 pt-5 text-xs sm:mt-7"><div className="flex justify-between gap-4"><dt className="text-forest-muted">Previous score</dt><dd className="tabular-nums text-forest">{current.score} / 100</dd></div><div className="flex justify-between gap-4"><dt className="text-forest-muted">Area vs. previous reading</dt><dd className="tabular-nums text-forest">{Number(measurements.area) > current.area ? "+" : ""}{(Number(measurements.area) - current.area).toFixed(1)} cm²</dd></div><div className="flex justify-between gap-4"><dt className="text-forest-muted">Recommended next step</dt><dd className="text-right text-forest">{live.status === "on-track" ? "Continue monitoring" : live.status === "watch" ? "Re-check in 24 hours" : "Clinician review"}</dd></div></dl>
-              </> : <div className="my-10 flex-1" role="status"><TriangleAlert className="mb-4 size-6 text-forest" /><h4 className="font-display text-2xl text-forest sm:text-3xl">Let’s check those measurements.</h4><p className="mt-3 text-sm leading-relaxed text-forest-muted">Update the highlighted fields to see a score. Your other measurements and photo are kept.</p></div>}
+              </> : <div className="my-10 flex-1" role="status"><TriangleAlert className="mb-4 size-6 text-forest" /><h4 className="font-display text-2xl text-forest sm:text-3xl">{!photoUrl ? "Add a photo to begin." : "Select the wound region."}</h4><p className="mt-3 text-sm leading-relaxed text-forest-muted">{!photoUrl ? "Upload or take a photo above to unlock measurements. Redness is auto-detected from the photo." : measurements.redness === "" ? "Drag over the wound in the photo to auto-detect redness, then adjust the unlocked measurements to see a score." : "Update the highlighted fields to see a score. Your other measurements and photo are kept."}</p></div>}
               <div className="mt-auto pt-6 sm:pt-8"><p className="flex items-center gap-2 text-xs font-medium text-forest"><Leaf className="size-3.5" /> Transparent, rule-based scoring</p><p className="mt-2 text-[11px] leading-relaxed text-forest-muted">An early-warning triage aid, not a diagnosis. Final decisions stay with the clinician. Sample history is simulated; this reading is not saved.</p></div>
             </div>
           </div>
